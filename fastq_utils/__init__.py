@@ -143,7 +143,7 @@ def find_fastq_files(directories: Iterable[Path], n: int, verbose=True) -> Itera
     for directory in directories:
         for r1_fastq_file in find_r1_fastq_files(directory):
             fastq_files = [r1_fastq_file]
-            fastq_files.extend(get_rN_fastq(r1_fastq_file, i) for i in range(1, n + 1))
+            fastq_files.extend(get_rN_fastq(r1_fastq_file, i) for i in range(2, n + 1))
 
             if all(fq.is_file() for fq in fastq_files):
                 if verbose:
