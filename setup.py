@@ -16,7 +16,7 @@ setup(
     url='https://github.com/hubmapconsortium/fastq-utils',
     author='Matt Ruffalo',
     author_email='mruffalo@cs.cmu.edu',
-    license='MIT',
+    license='GPLv3',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
