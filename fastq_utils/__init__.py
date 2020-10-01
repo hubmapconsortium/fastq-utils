@@ -8,11 +8,13 @@ from pathlib import Path
 import re
 from typing import Iterable, Sequence
 
-FASTQ_R1_PATTERN = re.compile(r'(.*)_(R?)(1)(\.(fq|fastq)(\.gz)?)')
+FASTQ_R1_PATTERN = re.compile(r'(.*)_(R?)(1)(_(\d+))?(\.(fq|fastq)(\.gz)?)')
 
 GROUPED_FASTQ_COLOR = '\033[01;32m'
 UNGROUPED_COLOR = '\033[01;31m'
 NO_COLOR = '\033[00m'
+
+# TODO: consolidate test data, make unit tests instead of doctests
 
 class FileType(Enum):
     def __new__(cls, filetype, open_function):
@@ -118,6 +120,12 @@ def get_rN_fastq(file_path: Path, n: int) -> Path:
     PosixPath('path/to/B001A001_R4.fq')
     >>> get_rN_fastq(Path('path/to/B001A001_R1.fq.gz'), n)
     PosixPath('path/to/B001A001_R4.fq.gz')
+    >>> get_rN_fastq(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R1_001.fastq.gz'), n)
+    PosixPath('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R4_001.fastq.gz')
+    >>> get_rN_fastq(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R2_001.fastq.gz'), n)
+    Traceback (most recent call last):
+      ...
+    ValueError: Path did not match R1 FASTQ pattern: 16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R2_001.fastq.gz
     >>> get_rN_fastq(Path('path/to/B001A001_2.fq.gz'), n)
     Traceback (most recent call last):
       ...
@@ -125,8 +133,40 @@ def get_rN_fastq(file_path: Path, n: int) -> Path:
     """
     if not FASTQ_R1_PATTERN.match(file_path.name):
         raise ValueError(f'Path did not match R1 FASTQ pattern: {file_path}')
-    new_filename = FASTQ_R1_PATTERN.sub(fr'\1_\g<2>{n}\4', file_path.name)
+    new_filename = FASTQ_R1_PATTERN.sub(fr'\1_\g<2>{n}\4\6', file_path.name)
     return file_path.with_name(new_filename)
+
+def is_fastq_r1(fastq_file: Path) -> bool:
+    """
+    This is a separate (pure) function so it can have some doctests
+    :param fastq_file:
+    :return: whether `fastq_file` is a R1 FASTQ file
+    >>> is_fastq_r1(Path('path/to/B001A001_1.fastq'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_1.fastq'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_1.fastq.gz'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_1.fq'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_1.fq.gz'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_R1.fastq'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_R1.fastq.gz'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_R1.fq'))
+    True
+    >>> is_fastq_r1(Path('path/to/B001A001_R1.fq.gz'))
+    True
+    >>> is_fastq_r1(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R1_001.fastq.gz'))
+    True
+    >>> is_fastq_r1(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R2_001.fastq.gz'))
+    False
+    >>> is_fastq_r1(Path('path/to/B001A001_2.fq.gz'))
+    False
+    """
+    return bool(FASTQ_R1_PATTERN.match(fastq_file.name))
 
 def find_r1_fastq_files(directory: Path) -> Iterable[Path]:
     for path in directory.glob('**/*'):
