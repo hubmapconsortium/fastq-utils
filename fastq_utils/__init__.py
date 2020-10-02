@@ -69,27 +69,6 @@ def get_sample_id_from_r1(file_path: Path) -> str:
 
     @param file_path:
     @return:
-
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_1.fastq'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_1.fastq.gz'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_1.fq'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_1.fq.gz'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_R1.fastq'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_R1.fastq.gz'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_R1.fq'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_R1.fq.gz'))
-    'B001A001'
-    >>> get_sample_id_from_r1(Path('whatever/path/to/B001A001_2.fq.gz'))
-    Traceback (most recent call last):
-      ...
-    ValueError: Path did not match R1 FASTQ pattern: whatever/path/to/B001A001_2.fq.gz
     """
     if not FASTQ_R1_PATTERN.match(file_path.name):
         raise ValueError(f'Path did not match R1 FASTQ pattern: {file_path}')
@@ -101,35 +80,6 @@ def get_rN_fastq(file_path: Path, n: int) -> Path:
     @param file_path:
     @param n:
     @return:
-
-    # there aren't any "R4" FASTQ files, just demonstrate generality
-    >>> n = 4
-    >>> get_rN_fastq(Path('path/to/B001A001_1.fastq'), n)
-    PosixPath('path/to/B001A001_4.fastq')
-    >>> get_rN_fastq(Path('path/to/B001A001_1.fastq.gz'), n)
-    PosixPath('path/to/B001A001_4.fastq.gz')
-    >>> get_rN_fastq(Path('path/to/B001A001_1.fq'), n)
-    PosixPath('path/to/B001A001_4.fq')
-    >>> get_rN_fastq(Path('path/to/B001A001_1.fq.gz'), n)
-    PosixPath('path/to/B001A001_4.fq.gz')
-    >>> get_rN_fastq(Path('path/to/B001A001_R1.fastq'), n)
-    PosixPath('path/to/B001A001_R4.fastq')
-    >>> get_rN_fastq(Path('path/to/B001A001_R1.fastq.gz'), n)
-    PosixPath('path/to/B001A001_R4.fastq.gz')
-    >>> get_rN_fastq(Path('path/to/B001A001_R1.fq'), n)
-    PosixPath('path/to/B001A001_R4.fq')
-    >>> get_rN_fastq(Path('path/to/B001A001_R1.fq.gz'), n)
-    PosixPath('path/to/B001A001_R4.fq.gz')
-    >>> get_rN_fastq(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R1_001.fastq.gz'), n)
-    PosixPath('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R4_001.fastq.gz')
-    >>> get_rN_fastq(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R2_001.fastq.gz'), n)
-    Traceback (most recent call last):
-      ...
-    ValueError: Path did not match R1 FASTQ pattern: 16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R2_001.fastq.gz
-    >>> get_rN_fastq(Path('path/to/B001A001_2.fq.gz'), n)
-    Traceback (most recent call last):
-      ...
-    ValueError: Path did not match R1 FASTQ pattern: path/to/B001A001_2.fq.gz
     """
     if not FASTQ_R1_PATTERN.match(file_path.name):
         raise ValueError(f'Path did not match R1 FASTQ pattern: {file_path}')
@@ -141,30 +91,6 @@ def is_fastq_r1(fastq_file: Path) -> bool:
     This is a separate (pure) function so it can have some doctests
     :param fastq_file:
     :return: whether `fastq_file` is a R1 FASTQ file
-    >>> is_fastq_r1(Path('path/to/B001A001_1.fastq'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_1.fastq'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_1.fastq.gz'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_1.fq'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_1.fq.gz'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_R1.fastq'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_R1.fastq.gz'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_R1.fq'))
-    True
-    >>> is_fastq_r1(Path('path/to/B001A001_R1.fq.gz'))
-    True
-    >>> is_fastq_r1(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R1_001.fastq.gz'))
-    True
-    >>> is_fastq_r1(Path('16_H4L1-4_L001_SI-GA-E11-4/H4L1-4_S64_L001_R2_001.fastq.gz'))
-    False
-    >>> is_fastq_r1(Path('path/to/B001A001_2.fq.gz'))
-    False
     """
     return bool(FASTQ_R1_PATTERN.match(fastq_file.name))
 
