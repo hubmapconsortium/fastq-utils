@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.com/hubmapconsortium/fastq-utils.svg?branch=master
+    :target: https://travis-ci.com/hubmapconsortium/fastq-utils
+
 FASTQ file utilities
 ==================================
 
