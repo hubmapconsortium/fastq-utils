@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Tuple
 import unittest
 
-from . import is_fastq_r1, get_rN_fastq, get_sample_id_from_r1
+from . import is_fastq, is_fastq_r1, get_rN_fastq, get_sample_id_from_r1
 
 base_path = Path('path/to')
 # there aren't any "R4" FASTQ files, just demonstrate generality
@@ -31,6 +31,20 @@ test_data_failure_base = [
     'B001A001_2.fq.gz',
 ]
 test_data_failure_paths = [base_path / t for t in test_data_failure_base]
+
+all_fastq_data_success_base = [
+    'test.fq',
+    'test.fq.gz',
+    'test.fastq',
+    'test.fastq.gz',
+]
+all_fastq_data_success_paths = [base_path / t for t in all_fastq_data_success_base]
+
+all_fastq_data_failure_base = [
+    'not_a_fastq.txt',
+    'not_a_fq.zip',
+]
+all_fastq_data_failure_paths = [base_path / t for t in all_fastq_data_failure_base]
 
 class TestIsFastqR1(unittest.TestCase):
     def test_success(self):
@@ -62,3 +76,14 @@ class TestGetRnFastq(unittest.TestCase):
     def test_failure(self):
         for path in test_data_failure_paths:
             self.assertRaises(ValueError, get_rN_fastq, path, n)
+
+class TestIsFastq(unittest.TestCase):
+    def test_success(self):
+        for path in all_fastq_data_success_paths:
+            with self.subTest(path=path):
+                self.assertTrue(is_fastq(path))
+
+    def test_failure(self):
+        for path in all_fastq_data_failure_paths:
+            with self.subTest(path=path):
+                self.assertFalse(is_fastq(path))

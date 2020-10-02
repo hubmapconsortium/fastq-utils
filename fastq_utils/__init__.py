@@ -8,7 +8,9 @@ from pathlib import Path
 import re
 from typing import Iterable, Sequence
 
-FASTQ_R1_PATTERN = re.compile(r'(.*)_(R?)(1)(_(\d+))?(\.(fq|fastq)(\.gz)?)')
+FASTQ_EXTENSION = r'(\.(fq|fastq)(\.gz)?)'
+FASTQ_PATTERN = re.compile(fr'(.*){FASTQ_EXTENSION}')
+FASTQ_R1_PATTERN = re.compile(fr'(.*)_(R?)(1)(_(\d+))?{FASTQ_EXTENSION}')
 
 GROUPED_FASTQ_COLOR = '\033[01;32m'
 UNGROUPED_COLOR = '\033[01;31m'
@@ -86,20 +88,40 @@ def get_rN_fastq(file_path: Path, n: int) -> Path:
     new_filename = FASTQ_R1_PATTERN.sub(fr'\1_\g<2>{n}\4\6', file_path.name)
     return file_path.with_name(new_filename)
 
-def is_fastq_r1(fastq_file: Path) -> bool:
+def is_fastq_r1(path: Path) -> bool:
     """
-    This is a separate (pure) function so it can have some doctests
-    :param fastq_file:
+    This is a separate (pure) function so it can have some unit tests
+    :param path:
     :return: whether `fastq_file` is a R1 FASTQ file
     """
-    return bool(FASTQ_R1_PATTERN.match(fastq_file.name))
+    return bool(FASTQ_R1_PATTERN.match(path.name))
+
+def is_fastq_r1_file(path: Path) -> bool:
+    """
+    This is a separate (pure) function so it can have some unit tests
+    :param path:
+    :return: whether `fastq_file` is a R1 FASTQ file
+    """
+    return is_fastq_r1(path) and path.is_file()
 
 def find_r1_fastq_files(directory: Path) -> Iterable[Path]:
-    for path in directory.glob('**/*'):
-        if path.is_file() and FASTQ_R1_PATTERN.match(path.name):
-            yield path
+    yield from filter(is_fastq_r1_file, directory.glob('**/*'))
 
-def find_fastq_files(directories: Iterable[Path], n: int, verbose=True) -> Iterable[Sequence[Path]]:
+def is_fastq(path: Path):
+    """
+    :param path:
+    :return: whether `path` is a FASTQ file
+    """
+    return bool(FASTQ_PATTERN.match(path.name))
+
+def is_fastq_file(path: Path):
+    return is_fastq(path) and path.is_file()
+
+def find_all_fastq_files(directories: Iterable[Path]) -> Iterable[Path]:
+    for directory in directories:
+        yield from filter(is_fastq_r1_file, directory.glob('**/*'))
+
+def find_grouped_fastq_files(directories: Iterable[Path], n: int, verbose=True) -> Iterable[Sequence[Path]]:
     """
     :param directories:
     :param n: number of FASTQ files to find; returns R1 through R{n}
