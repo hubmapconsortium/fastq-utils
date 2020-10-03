@@ -1,4 +1,5 @@
 import bz2
+from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 import gzip
@@ -6,7 +7,7 @@ import lzma
 from os import PathLike
 from pathlib import Path
 import re
-from typing import Callable, Iterable, Pattern, Sequence, Tuple
+from typing import Callable, Dict, Iterable, List, Pattern, Sequence, Tuple
 
 FASTQ_EXTENSION = r'(\.(fq|fastq)(\.gz)?)'
 FASTQ_PATTERN = re.compile(fr'(.*){FASTQ_EXTENSION}')
@@ -137,3 +138,21 @@ def find_grouped_fastq_files(directory: Path, n: int, verbose=True) -> Iterable[
                 for fq in fastq_files:
                     if fq.is_file():
                         print(f'\t{r1_fastq_file}')
+
+def collect_fastq_files_by_directory(directory: Path) -> Dict[Path, List[Path]]:
+    """
+    Walk `directory`, finding all FASTQ files. Group these by the directory
+    the files are in, so we can create the same directory structure for the
+    output of FastQC.
+
+    :param directory: Path to directory containing FASTQ files
+    :return: Mapping of *relative* directory names to lists of absolute
+      FASTQ file paths. The relative directory names are used to stage
+      output directories matching the same structure as the input directory
+      tree; the FASTQ paths are passed directly to FastQC
+    """
+    files_by_directory = defaultdict(list)
+    for fastq_file in find_fastq_files(directory):
+        relative_fastq = fastq_file.relative_to(directory)
+        files_by_directory[relative_fastq.parent].append(fastq_file)
+    return files_by_directory

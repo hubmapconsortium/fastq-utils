@@ -1,8 +1,16 @@
 from pathlib import Path
+import tempfile
 from typing import List, Tuple
 import unittest
 
-from . import is_fastq, is_fastq_r1, get_rN_fastq, get_sample_id_from_r1
+from . import (
+    collect_fastq_files_by_directory,
+    is_fastq,
+    is_fastq_r1,
+    find_grouped_fastq_files,
+    get_rN_fastq,
+    get_sample_id_from_r1,
+)
 
 base_path = Path('path/to')
 # there aren't any "R4" FASTQ files, just demonstrate generality
@@ -46,6 +54,11 @@ all_fastq_data_failure_base = [
 ]
 all_fastq_data_failure_paths = [base_path / t for t in all_fastq_data_failure_base]
 
+def touch(path: Path):
+    path.parent.mkdir(exist_ok=True, parents=True)
+    with open(path, 'a'):
+        pass
+
 class TestIsFastqR1(unittest.TestCase):
     def test_success(self):
         for r1_path, r4_path, sample_id in test_data_success_paths:
@@ -87,3 +100,49 @@ class TestIsFastq(unittest.TestCase):
         for path in all_fastq_data_failure_paths:
             with self.subTest(path=path):
                 self.assertFalse(is_fastq(path))
+
+class TestFindGroupedFastq(unittest.TestCase):
+    def test_single_fastq(self):
+        with tempfile.TemporaryDirectory() as t:
+            p = Path(t)
+            f = p / 'something_R1.fastq'
+            touch(f)
+
+            fastq_files = list(find_grouped_fastq_files(p, 1, verbose=False))
+            self.assertEqual(len(fastq_files), 1)
+            self.assertEqual(len(fastq_files[0]), 1)
+            self.assertEqual(fastq_files[0][0], f)
+
+    def test_four_fastqs(self):
+        with tempfile.TemporaryDirectory() as t:
+            p = Path(t)
+            paths = [p / f'something_R{i}.fastq' for i in range(1, 5)]
+            for path in paths:
+                touch(path)
+            touch(p / 'lone_R1.fastq')
+
+            fastq_files = list(find_grouped_fastq_files(p, 4, verbose=False))
+            self.assertEqual(len(fastq_files), 1)
+            self.assertEqual(len(fastq_files[0]), 4)
+            self.assertEqual(fastq_files[0], paths)
+
+class TestCollectFastqByDirectory(unittest.TestCase):
+    def test_collect_fastqs(self):
+        with tempfile.TemporaryDirectory() as t:
+            p = Path(t)
+
+            subdir_count = 2
+            file_count = 3
+            dirs = [p / str(i) for i in range(subdir_count)]
+            relative_dirs = sorted(d.relative_to(p) for d in dirs)
+
+            for d in dirs:
+                for j in range(file_count):
+                    touch(d / f'{j}.fastq')
+
+            grouped = collect_fastq_files_by_directory(p)
+            self.assertEqual(sorted(grouped), relative_dirs)
+
+            for relative_dir, files in grouped.items():
+                with self.subTest(subdir=relative_dir):
+                    self.assertEqual(len(files), file_count)
