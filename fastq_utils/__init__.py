@@ -6,7 +6,7 @@ import lzma
 from os import PathLike
 from pathlib import Path
 import re
-from typing import Iterable, Sequence
+from typing import Callable, Iterable, Pattern, Sequence, Tuple
 
 FASTQ_EXTENSION = r'(\.(fq|fastq)(\.gz)?)'
 FASTQ_PATTERN = re.compile(fr'(.*){FASTQ_EXTENSION}')
@@ -88,60 +88,54 @@ def get_rN_fastq(file_path: Path, n: int) -> Path:
     new_filename = FASTQ_R1_PATTERN.sub(fr'\1_\g<2>{n}\4\6', file_path.name)
     return file_path.with_name(new_filename)
 
-def is_fastq_r1(path: Path) -> bool:
+def create_match_find_funcs(pattern: Pattern) -> Tuple[
+    Callable[[Path], bool],
+    Callable[[Path], bool],
+    Callable[[Path], Iterable[Path]],
+]:
     """
-    This is a separate (pure) function so it can have some unit tests
-    :param path:
-    :return: whether `fastq_file` is a R1 FASTQ file
+    :param pattern: File name regex
+    :return: A 3-tuple of functions:
+     [0] accepts a Path, returns whether the path name matches the regex
+     [1] accepts a Path, returns whether the path name matches the regex
+         and the file exists on disk
+     [2] accepts a Path representing a directory, recursively walks the
+         directory tree and returns Paths of all files matching the regex
     """
-    return bool(FASTQ_R1_PATTERN.match(path.name))
+    def matches_regex(path: Path) -> bool:
+        return bool(pattern.match(path.name))
 
-def is_fastq_r1_file(path: Path) -> bool:
-    """
-    This is a separate (pure) function so it can have some unit tests
-    :param path:
-    :return: whether `fastq_file` is a R1 FASTQ file
-    """
-    return is_fastq_r1(path) and path.is_file()
+    def matches_regex_and_is_file(path: Path) -> bool:
+        return matches_regex(path) and path.is_file()
 
-def find_r1_fastq_files(directory: Path) -> Iterable[Path]:
-    yield from filter(is_fastq_r1_file, directory.glob('**/*'))
+    def find_all_matching_files(directory: Path) -> Iterable[Path]:
+        yield from filter(matches_regex_and_is_file, directory.glob('**/*'))
 
-def is_fastq(path: Path):
-    """
-    :param path:
-    :return: whether `path` is a FASTQ file
-    """
-    return bool(FASTQ_PATTERN.match(path.name))
+    return matches_regex, matches_regex_and_is_file, find_all_matching_files
 
-def is_fastq_file(path: Path):
-    return is_fastq(path) and path.is_file()
+is_fastq_r1, is_fastq_r1_file, find_r1_fastq_files = create_match_find_funcs(FASTQ_R1_PATTERN)
+is_fastq, is_fastq_file, find_fastq_files = create_match_find_funcs(FASTQ_PATTERN)
 
-def find_all_fastq_files(directories: Iterable[Path]) -> Iterable[Path]:
-    for directory in directories:
-        yield from filter(is_fastq_r1_file, directory.glob('**/*'))
-
-def find_grouped_fastq_files(directories: Iterable[Path], n: int, verbose=True) -> Iterable[Sequence[Path]]:
+def find_grouped_fastq_files(directory: Path, n: int, verbose=True) -> Iterable[Sequence[Path]]:
     """
     :param directories:
     :param n: number of FASTQ files to find; returns R1 through R{n}
     :param verbose:
     :return: Iterable of Sequence[Path]s, with n FASTQ Paths in each inner sequence
     """
-    for directory in directories:
-        for r1_fastq_file in find_r1_fastq_files(directory):
-            fastq_files = [r1_fastq_file]
-            fastq_files.extend(get_rN_fastq(r1_fastq_file, i) for i in range(2, n + 1))
+    for r1_fastq_file in find_r1_fastq_files(directory):
+        fastq_files = [r1_fastq_file]
+        fastq_files.extend(get_rN_fastq(r1_fastq_file, i) for i in range(2, n + 1))
 
-            if all(fq.is_file() for fq in fastq_files):
-                if verbose:
-                    print(GROUPED_FASTQ_COLOR + f'Found group of {n} FASTQ files:' + NO_COLOR)
-                    for fq in fastq_files:
-                        print(f'\t{fq}')
-                yield fastq_files
-            else:
-                if verbose:
-                    print(UNGROUPED_COLOR + 'Found ungrouped FASTQ file(s):' + NO_COLOR)
-                    for fq in fastq_files:
-                        if fq.is_file():
-                            print(f'\t{r1_fastq_file}')
+        if all(fq.is_file() for fq in fastq_files):
+            if verbose:
+                print(GROUPED_FASTQ_COLOR + f'Found group of {n} FASTQ files:' + NO_COLOR)
+                for fq in fastq_files:
+                    print(f'\t{fq}')
+            yield fastq_files
+        else:
+            if verbose:
+                print(UNGROUPED_COLOR + 'Found ungrouped FASTQ file(s):' + NO_COLOR)
+                for fq in fastq_files:
+                    if fq.is_file():
+                        print(f'\t{r1_fastq_file}')
