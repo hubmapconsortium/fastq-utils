@@ -16,8 +16,6 @@ GROUPED_FASTQ_COLOR = '\033[01;32m'
 UNGROUPED_COLOR = '\033[01;31m'
 NO_COLOR = '\033[00m'
 
-# TODO: consolidate test data, make unit tests instead of doctests
-
 class FileType(Enum):
     def __new__(cls, filetype, open_function):
         obj = object.__new__(cls)
