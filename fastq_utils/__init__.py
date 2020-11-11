@@ -11,7 +11,7 @@ from typing import Callable, Dict, Iterable, List, Pattern, Sequence, Tuple
 
 FASTQ_EXTENSION = r'(\.(fq|fastq)(\.gz)?)'
 FASTQ_PATTERN = re.compile(fr'(.*){FASTQ_EXTENSION}')
-FASTQ_R1_PATTERN = re.compile(fr'(.*)_(R?)(1)(_(\d+))?{FASTQ_EXTENSION}')
+FASTQ_R1_PATTERN = re.compile(fr'(.*)((_(R?))|(.read))(1)(_(\d+))?{FASTQ_EXTENSION}')
 
 GROUPED_FASTQ_COLOR = '\033[01;32m'
 UNGROUPED_COLOR = '\033[01;31m'
@@ -84,7 +84,7 @@ def get_rN_fastq(file_path: Path, n: int) -> Path:
     """
     if not FASTQ_R1_PATTERN.match(file_path.name):
         raise ValueError(f'Path did not match R1 FASTQ pattern: {file_path}')
-    new_filename = FASTQ_R1_PATTERN.sub(fr'\1_\g<2>{n}\4\6', file_path.name)
+    new_filename = FASTQ_R1_PATTERN.sub(fr'\1\g<2>{n}\7\9', file_path.name)
     return file_path.with_name(new_filename)
 
 def create_match_find_funcs(pattern: Pattern) -> Tuple[
