@@ -1,5 +1,7 @@
 .. image:: https://travis-ci.com/hubmapconsortium/fastq-utils.svg?branch=master
     :target: https://travis-ci.com/hubmapconsortium/fastq-utils
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
 
 FASTQ file utilities
 ==================================
