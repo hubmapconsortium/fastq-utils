@@ -27,6 +27,7 @@ test_data_success_base: List[Tuple[str, str, str]] = [
     ("B001A001_R1.fq.gz", "B001A001_R4.fq.gz", "B001A001"),
     ("H4L1-4_S64_L001_R1_001.fastq.gz", "H4L1-4_S64_L001_R4_001.fastq.gz", "H4L1-4_S64_L001"),
     ("prefix_0000.read1.fastq.gz", "prefix_0000.read4.fastq.gz", "prefix_0000"),
+    ("W136.heart.LV.s1.R1.fastq.gz", "W136.heart.LV.s1.R4.fastq.gz", "W136.heart.LV.s1"),
 ]
 
 

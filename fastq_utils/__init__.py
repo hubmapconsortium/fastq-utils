@@ -11,7 +11,7 @@ from typing import Callable, Dict, Iterable, List, Pattern, Sequence, Tuple
 
 FASTQ_EXTENSION = r"(\.(fq|fastq)(\.gz)?)"
 FASTQ_PATTERN = re.compile(fr"(.*){FASTQ_EXTENSION}")
-FASTQ_R1_PATTERN = re.compile(fr"(.*)((_(R?))|(.read))(1)([_.](\d+))?{FASTQ_EXTENSION}")
+FASTQ_R1_PATTERN = re.compile(fr"(.*)(([_.](R?))|(.read))(1)([_.](\d+))?{FASTQ_EXTENSION}")
 
 GROUPED_FASTQ_COLOR = "\033[01;32m"
 UNGROUPED_COLOR = "\033[01;31m"
