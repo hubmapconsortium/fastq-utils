@@ -9,7 +9,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Pattern, Sequence, Tuple
 
-FASTQ_EXTENSION = r"(\.(fq|fastq)(\.gz)?)"
+FASTQ_EXTENSION = r"(\.(fq|fastq)(\.gz)?)$"
 FASTQ_PATTERN = re.compile(rf"(.*){FASTQ_EXTENSION}")
 FASTQ_R1_PATTERN = re.compile(
     rf"(.*)(([_.](R?))|(.read))(1)([_.](\d+)([\w.]+)?)?{FASTQ_EXTENSION}"
